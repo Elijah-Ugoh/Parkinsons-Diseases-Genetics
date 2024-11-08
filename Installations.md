@@ -31,7 +31,8 @@ $ brew install fuse-t-sshfs
 ## Connecting and Moving Files to the Cluster
 ```bash 
 sftp elugoh@cs-diode.lunarc.lu.se # requires password and Pocket Pass OTP
-get -r Elijah/ /home/elugoh/Documents/DataFolder # move all data files from local directory to cluster
+sftp> put -r Elijah/ /home/elugoh/Documents/DataFolder # move all data files from local directory to cluster
+sftp> put -r supplementary_data/ /home/elugoh/Documents/DataFolder 
 exit # quit sftp
 rm -r Elijah/ # remove all data files from local directory
 ```
