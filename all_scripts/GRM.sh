@@ -8,6 +8,9 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=8G
 
+# THis script runs the GCTA software for calculating genetic relatedness matrix among 1864 indiduals
+# using about 17 million snps obtained from the plink binary input files
+
 # write to standard output 
 cat $0
 

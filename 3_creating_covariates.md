@@ -1,3 +1,5 @@
+# Creating the Covariate File
+
 To run the polygenic risk score analysis, the following data is required:
 - The QC-ed and Imputed genetic data files for all the individuals (cases and comntrols) in plink binary format (.bed, .bim & .fam files).
 - A covariate file containing supplementary data about each individual, as well as their corresponding principal component analysis data.
@@ -65,32 +67,44 @@ awk 'NR==1{$2="IID"; $4="SEX"; $5="EDUCATION"; $6="AAD"; $7="AGE"; print} NR>1' 
 ```
 
 ### Compute PCA
-A principal component analysis is computed for all 1864 indiduals in the study to determine how many PCs to include in the covariates.
+A principal component analysis is computed for all indiduals in the study to determine how many PCs to include in the covariates.
+
+This is done on the filtered, pre-imputation data to get uninflated population stratification. 
+
+To keep the working directory clean, create a different directory for the PCA calculation
+
 ```bash
 cd ../ && mkdir 03_PCA
-cd ../
+cd 03_PCA
 
-plink --bfile MPBC_HRC_Rsq03_updated --indep-pairwise 50 5 0.5 --out processed_analysis_files/03_PCA/prune
-plink --bfile MPBC_HRC_Rsq03_updated --extract processed_analysis_files/03_PCA/prune.prune.in --make-bed --out processed_analysis_files/03_PCA/MPBC_HRC_Rsq03_updated_PRUNED
-cd processed_analysis_files/03_PCA/
-plink --bfile MPBC_HRC_Rsq03_updated_PRUNED --pca --out MPBC_HRC_PCA
+plink --bfile ../01_QC/hwe/FILTERED.test --maf 0.05 --geno 0.01 --hwe 1E-6 --make-bed --out FILTERED.test_for_PCA
+
+# Note that we still filter for genotyping, minor allele frequency, and hardy-weinberg equilibrium
+
+plink --bfile FILTERED.test_for_PCA --indep-pairwise 50 5 0.5 --out prune 
+plink --bfile FILTERED.test_for_PCA --extract prune.prune.in --make-bed --out prune
+plink --bfile prune --pca --out NEW_MPBC_PCA
 ```
+To determine the number of PCs to include in the covariates and GWAS analysis, we use the following R scripts to make a scree plot and a bar plot to see the variance explained by the eigenvalues of the PCs.
 
-The PCA is computed in R using the R script ```PCA.R```and saved as a text file in the current working directory as follows:
 ```bash
-module load GCC/12.3.0
-module load R/4.3.2
+module load GCC/12.3.0 R/4.3.2
+R < make_scree_plots.R --no-save
 R < PCA.R --no-save
 ```
+
+- ```make_scree_plots.R``` plot the variance explained by the eigenvalues in of all the PCs, as well as the first 10.  
+- The R script, ```PCA.R``` can also be use to merge all the PCs and their individual IDs and saved as a text file in the current working directory as follows:
 - The outputted table, ```pca_prunned_updated.txt``` has 20 PCs by default.
-- Also, from the ```percentage_variance_explained.png``` plot, the first 9 PCs separate the data the most. 
-- ```Plot_of_PC1_vs_PC2.png``` also shows variation by sex and disease status in the first two principal components.
+- Also, from the ```screePlot_MPBC_1-10.jpg``` and ```percentage_variance_explained.png``` plots, the first 10 PCs separate the data the most. 
+- ```Plot_of_PC1_vs_PC2.png``` also shows variation by sex and disease status in the first two PCs.
 
 ### Update Covariate File with PCs
+Now, the covariate file can be updated with the right number of PCs needed. 
 ```bash
 cd ../02_covariate_file/
 # merge the covariates and the the first 10 PCs
-awk 'NR==FNR {a[$1] = "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t" $6 "\t" $7 "\t" $8 "\t" $9 "\t" $10 "\t" $11; next} {print $0, (a[$1] ? a[$1] : "")}' ../03_PCA/pca_prunned_updated.txt renamed_updated_cov.txt > merged_pcs_cov.txt
+awk 'NR==FNR {a[$1] = $2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11; next} {print $0, (a[$1] ? a[$1] : "")}' ../03_PCA/pca_prunned_updated.txt renamed_updated_cov.txt > merged_pcs_cov.txt
 
 # add the header names for the PCs
 awk 'NR==1{$8="PC1"; $9="PC2"; $10="PC3"; $11="PC4"; $12="PC5"; $13="PC6";$14="PC7"; $15="PC8"; $16="PC9"; $17="PC10"; print} NR>1' merged_pcs_cov.txt > final_covariates.txt
@@ -103,7 +117,7 @@ sed -i 's/ /\t/g' final_covariates.txt
 cut -d " " -f 3-4 ../../MPBC_HRC_Rsq03_updated.fam > MAT_PAT_ID.txt # extract the columns from .fam file
 awk 'BEGIN{print "MAT PAT"}1' MAT_PAT_ID.txt > MAT_PAT_ID2.txt # add headers
 sed -i 's/ /\t/g' MAT_PAT_ID2.txt # replace spaces with tabs
-paste final_covariates.txt MAT_PAT_ID2.txt > c.txt # merge the new columns with the final covariate file
+paste final_covariates.txt MAT_PAT_ID2.txt > with_MAT_PAT_ID.txt # merge the new columns with the final covariate file
 
 # re-arrange the columns
 awk 'NR==FNR {cols[NR]=$18 "\t" $19; print $1 "\t" $2 "\t" cols[FNR] "\t" $4 "\t" $3 "\t" $5 "\t" $6"\t" $7 "\t" $8 "\t" $9"\t" $10 "\t" $11 "\t" $12 "\t" $13 "\t" $14 "\t" $15 "\t" $16 "\t" $17}' c.txt > covariates.txt
@@ -113,6 +127,10 @@ less covariates.txt # view final coviarate file and compare the first two column
 
 Finally, to ensure the IDs in the fam file and covariate files match, we check for any differences using awk on the terminal
 ```bash
-awk 'FNR==NR{a[$1];next}($1 in a){print}' MPBC_HRC_Rsq03_updated.fam processed_analysis_files/covariates.txt
+awk 'FNR==NR{a[$1];next} !($1 in a){print}' ../../MPBC_HRC_Rsq03_updated.fam covariates.txt
 # the only difference should be the headers, which is missing in the .fam file.
 ```
+```bash
+FID     IID     MAT     PAT     SEX     PHENO       EDUCATION       AAD     AGE     PC1     PC2     PC3     PC4     PC5     PC6     PC7     PC8     PC9     PC10     
+```
+
