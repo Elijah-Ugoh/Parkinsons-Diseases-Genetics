@@ -267,7 +267,7 @@ A script, ```PRSice.sh``` is also used for this. First, create a new dir in the 
 ```bash
 sbatch PRSice.sh
 
-# PRSixe automatically removes and saves duplicate SNPs from the summary stat, so re-run it as shown below with the --extract flag if duplicates are detected. prsice_run_07_12_2024.valid contains the duplicates in this case.
+# PRSice automatically removes and saves duplicate SNPs from the summary stat, so the script is written to automatically re-run PRSice adding the --extract flag if duplicates are detected. The .valid contains the duplicates in this case.
 
 Rscript PRSice.R --dir $NAISS_TMP \
  --prsice PRSice_linux \
@@ -285,27 +285,7 @@ Rscript PRSice.R --dir $NAISS_TMP \
  --thread 25
 ```
 
-To ensure, we have the best-fit regression without overfitting, we use empirical p-value by adding the ```--perm``` flag with 12000 permutation. Additionally, we can tell PRSice to print the included SNPs with ```--print-snp```, as well as adjust for covariates in the regression using our covariates file. The command becomes:
+To ensure, we have the best-fit regression without overfitting, we use empirical p-value by adding the ```--perm``` flag with 12000 permutation. Additionally, we can adjust for covariates in the regression using our covariates file by adding the ```--cov```and ```--cov-col``` options. See ```PRSice.sh``` script for full command.
 
-```bash
-Rscript PRSice.R --dir $NAISS_TMP \
- --prsice PRSice_linux \
- --base base_data.txt \
- --snp SNP --bp BP --chr CHR --A1 A1 --A2 A2 --stat BETA --pvalue P \
- --target MPBC_HRC_Rsq03_updated \
- --beta \
- --binary-target T \
- --extract prsice_run_07_12_2024.valid \
- --ld NO_INDELS_EUR_KGP_autosomes_cor --score avg --out prsice_run_08_12_2024 \
- --clump-kb 250kb \
- --clump-p 1.000000 \
- --clump-r2 0.100000 \
- --seed 782260214 \
- --perm 12000 \
- --print-snp \
- --cov NEW_COVS.txt \
- --cov-col SEX,AGE,@PC[1-5]
- --thread 25
-```
 
-NB: Include QC for GWAS
+Using the ```--perm``` option or adjusting for covariates didn't yield a better result. Moreover, this will be done in R when analysing the model fitness using logistic regression.
