@@ -444,23 +444,27 @@ table(snus$Snus_PD_Status)
 table(pesticides$Pestices_PD_Status)
 table(caffeine1$Caffeine_PD_Status)
 table(caffeine2$Caffeine_Level_PD_Status)
+
+# Mean of ages
 # Calculate the mean age for cases (PHENO == 1)
-mean_age_cases <- mean(covariates$AGE[covariates$PHENO == 1], na.rm = TRUE)
-# Print the mean
-print(mean_age_cases)
+mean(covariates$AGE[covariates$PHENO == 1], na.rm = TRUE)
 # Get a summary of AGE for cases
 summary(covariates$AGE[covariates$PHENO == 1])
-
 # Calculate the mean age for controls(PHENO == 0)
-mean_age_controls <- mean(covariates$AGE[covariates$PHENO == 0], na.rm = TRUE)
-# Print the mean
-print(mean_age_controls)
-# Get a summary of AGE for cases
+mean(covariates$AGE[covariates$PHENO == 0], na.rm = TRUE)
+# Get a summary of AGE for controls
 summary(covariates$AGE[covariates$PHENO == 0])
 
 # Calculate the mean age at diagnoses in the study for cases(PHENO == 1)
-mean_age_AAD <- mean(covariates$AAD[covariates$PHENO == 1], na.rm = TRUE)
-# Print the mean
-print(mean_age_AAD)
+mean(covariates$AAD[covariates$PHENO == 1], na.rm = TRUE)
 # Get a summary of AGE for cases
 summary(covariates$AAD[covariates$PHENO == 1])
+# Standard deviation of the age at diagnoses for the cases
+sd(covariates$AAD[covariates$PHENO == 1], na.rm = TRUE)
+
+
+# Standard deviation of ages
+# Standard deviation of AGE for cases (PHENO == 1)
+sd(covariates$AGE[covariates$PHENO == 1], na.rm = TRUE)
+# Standard deviation of AGE for controls (PHENO == 0)
+sd(covariates$AGE[covariates$PHENO == 0], na.rm = TRUE)
