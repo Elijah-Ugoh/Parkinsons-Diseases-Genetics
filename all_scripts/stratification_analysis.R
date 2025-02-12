@@ -337,7 +337,7 @@ p <- ggplot(pesticides, aes(x = reorder(as.factor(Pestices_PD_Status), zSCORE), 
                       fill = as.factor(Pestices_PD_Status))) + geom_violin(trim = FALSE)
 p2 <- p + geom_boxplot(width = 0.4, fill = "white", alpha = 0.7) + 
   theme_minimal() + 
-  ggtitle("PRS Distribution by Snus and PD Status") +
+  ggtitle("PRS Distribution by Pesticide Exposure and PD Status") +
   scale_fill_manual(values = c("blue", "red", "blue", "red")) + 
   theme_bw() + 
   ylab("PD PRS (zSCORE)") + 
@@ -468,3 +468,10 @@ sd(covariates$AAD[covariates$PHENO == 1], na.rm = TRUE)
 sd(covariates$AGE[covariates$PHENO == 1], na.rm = TRUE)
 # Standard deviation of AGE for controls (PHENO == 0)
 sd(covariates$AGE[covariates$PHENO == 0], na.rm = TRUE)
+
+# to investigate the mean PRS score in groups of individuals with/without PD that smoke, use snus, drink coffee, and are exposed to pesticides
+mean(caffeine2$zSCORE[caffeine2$Caffeine_Consumption_Level == "HIGH" & caffeine2$PD == 1])
+mean(caffeine2$zSCORE[caffeine2$Caffeine_Consumption_Level == "LOW" & caffeine2$PD == 1])
+mean(caffeine2$zSCORE[caffeine2$Caffeine_Consumption_Level == "HIGH" & caffeine2$PD == 0])
+mean(caffeine2$zSCORE[caffeine2$Caffeine_Consumption_Level == "LOW" & caffeine2$PD == 0])
+
