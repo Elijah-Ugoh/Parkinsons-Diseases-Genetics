@@ -98,6 +98,64 @@ Lin_model <- glm(T2D ~ z_Lin_Score + SEX + AGE + PC1 + PC2 + PC3 + PC4 + PC5,
                   family="binomial", data = all_data)
 summary(Lin_model)
 
+# Compare Model Fit Using AIC (Akaike Information Criterion)
+AIC(Ge_model)
+AIC(Khera_model)
+AIC(Mars_model)
+AIC(Lin_model)
+
+# Compare Model Fit Using BIC (Bayesian Information Criterion)
+BIC(Ge_model)
+BIC(Khera_model)
+BIC(Mars_model)
+BIC(Lin_model)
+
+# Assess Model Predictive Power Using McFadden’s R²
+# A pseudo-R² metric that evaluates how well the model explains variation in T2D risk: Higher McFadden’s R² means a better model.
+library(pscl)
+pR2(Ge_model)["McFadden"]
+pR2(Khera_model)["McFadden"]
+pR2(Mars_model)["McFadden"]
+pR2(Lin_model)["McFadden"]
+
+# Assess Model Discrimination Using AUC (Area Under the Curve)
+roc_Ge <- roc(all_data$T2D, predict(Ge_model, type = "response"))
+roc_Khera <- roc(all_data$T2D, predict(Khera_model, type = "response"))
+roc_Mars <- roc(all_data$T2D, predict(Mars_model, type = "response"))
+roc_Lin <- roc(all_data$T2D, predict(Lin_model, type = "response"))
+
+auc(roc_Ge)
+auc(roc_Khera)
+auc(roc_Mars)
+auc(roc_Lin)
+
+#  Check Odds Ratios and Statistical Significance
+exp(coef(Ge_model))
+exp(coef(Khera_model))
+exp(coef(Mars_model))
+exp(coef(Lin_model))
+
+# Load necessary libraries
+library(knitr)
+install.packages("kableExtra")
+library(kableExtra)
+
+# Calculate metrics
+# Capture all metrics in a single step and save to a file
+combined_results <- data.frame(
+  Model = c("Ge", "Khera", "Mars", "Lin"),
+  AIC = c(AIC(Ge_model), AIC(Khera_model), AIC(Mars_model), AIC(Lin_model)),
+  BIC = c(BIC(Ge_model), BIC(Khera_model), BIC(Mars_model), BIC(Lin_model)),
+  McFadden_R2 = c(pR2(Ge_model)["McFadden"], pR2(Khera_model)["McFadden"], pR2(Mars_model)["McFadden"], pR2(Lin_model)["McFadden"]),
+  AUC = c(auc(roc(all_data$T2D, predict(Ge_model, type = "response"))),
+          auc(roc(all_data$T2D, predict(Khera_model, type = "response"))),
+          auc(roc(all_data$T2D, predict(Mars_model, type = "response"))),
+          auc(roc(all_data$T2D, predict(Lin_model, type = "response")))),
+  Odds_Ratio = c(exp(coef(Ge_model)[2]), exp(coef(Khera_model)[2]), exp(coef(Mars_model)[2]), exp(coef(Lin_model)[2])),
+  P_Value = c(summary(Ge_model)$coefficients[2, 4], summary(Khera_model)$coefficients[2, 4], summary(Mars_model)$coefficients[2, 4], summary(Lin_model)$coefficients[2, 4])
+)
+# Save combined results to a text file
+write.table(combined_results, file = "Scores_PD-DM/combined_model_comparison_results.txt", row.names = FALSE, quote = FALSE, sep = "\t")
 
 # all_data visualization
 ####################################################################################################
@@ -631,4 +689,6 @@ ggplot(quantile_summary, aes(x = factor(quantiles), y = proportion, color = fact
   theme_minimal() +
   ggtitle("Proportion of Cases and Controls by T2D PRS Quantiles (GWAS - Lin, 2023)")
 ggsave(filename = "Scores_PD-DM/quantile_plot_by_proportion_Lin.jpeg", width = 8, height = 5, units = "in", dpi = 300)
+
+
 
