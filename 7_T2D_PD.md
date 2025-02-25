@@ -99,7 +99,7 @@ awk 'NR==FNR {a[$1] = $2; next} {if ($1 in a) print $0 "\t" a[$1]}' diabetes_wit
 sed -i 's/ /\t/g' covariates_with_T2D.txt # ensure the dataset is properly tab-deliminated
 ```
 
-Comparisons
+Comparisons:
 ```bash
 # 1. check if all the IDs merged from the national diagnostic data are in the questionnaire data (not really necessary)
 awk 'NR==FNR {ids[$1]; next} !($1 in ids) {print $1 " is missing from file A"}' covariates_with_T2D.txt General_diagnostic_info/PD_T2D_harmonized.txt | less
@@ -164,6 +164,7 @@ plink --bfile ../../../MPBC_HRC_Rsq03_updated --score ../Scores_PD-DM/updated_Kh
 plink --bfile ../../../MPBC_HRC_Rsq03_updated --score ../Scores_PD-DM/updated_Ge_scores2.txt --out Ge_PRS
 plink --bfile ../../../MPBC_HRC_Rsq03_updated --score ../Scores_PD-DM/updated_Mars_scores2.txt --out Mars_PRS
 plink --bfile ../../../MPBC_HRC_Rsq03_updated --score ../Scores_PD-DM/updated_Lin_scores2.txt --out Lin_PRS
-
-# cp the PRS calculations and the new covariate file locally and read them in R for further analysis and visualization
+```
+- Copy the PRS calculations and the new covariate file locally and read them in R for further analysis and visualization
+- See the ```T2D_PD_PRS_Analysis.R``` script for the complete analysis in R. 
 
