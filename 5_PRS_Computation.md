@@ -35,7 +35,7 @@ moddule load R/4.3.2
 R < PRS_analysis.R --no-save
 ```
 
-No significant separation was noticed in the PRS for both the cases and controls.
+Separation noticed in the PRS for both the cases and controls was not strong.
 
 The same analysis is also conducted for using the 1805 SNPs associated with Parkinson's disease in the Nall et al., 2019 study. 
 
@@ -61,80 +61,51 @@ Next Steps:
 ```bash
 # update summary statistics file name for easy handling
 mv summary_statistics_Nalls_et_al_2019_EUR_metaGWAS_no23andme_hg38.txt updated_score_file.txt
+```
+Next, the file is re-formatted according to the structure in our .bim file
+```bash 
+# create a new file
+echo -e "rsID\tchr_name\tchr_position\teffect_allele\tother_allele\teffect_weight" > new_score_file.txt
+# grab and apped re-arranged fields to the file
+awk -F'[:| \t]' 'NR >1{
+# Extract fields
+chr = ($1 ~ /^chr/) ? substr($1, 4) : $1; # Remove "chr" to get the chromosome number and postion
+pos = $2; # Extract position
+rsID = $17; # Extract rsID
+effect_size = $9; # Extract effect weight
+effect_allele = toupper($3); # Extract effect allele
+other_allele = toupper($4); # Extract other allele 
+# Print in the required format
+print rsID "\t" chr "\t" pos "\t" effect_allele "\t" other_allele "\t" effect_size
+}' updated_score_file.txt >> new_score_file.txt
 
-# extract relevant columns from the SNPs data
-awk 'NR>1 {print $1":"toupper($2)":"toupper($3)"\t"toupper($3)"\t"$8"\t"$16}' updated_score_file.txt > all_snps.txt
+# update SNPs in score file to ensure they match the .bim data (SNP ID, effect, and alternate/other alleles)
+sbatch update_scores_files.sh 
 
-# remove 'chr' from the snp ids
-sed -i 's/^chr//g' all_snps.txt
+NB: The ```re_format_scores.py``` script is used for this. 
 
-# next, extract the matching snps (1805) specified in the rsID.txt file above
-awk 'NR==FNR { rsids[$1]; next} $4 in rsids { print $1, $2, $3}' rsIDs.txt all_snps.txt > cleaned_score_file.txt
-
-# explore that final data
-less cleaned_score_file.txt
-wc -l cleaned_score_file.txt
-
-# sort the chromosome numbers in ascending order (optional)
-sort -t: -k1,1n -k2,2n cleaned_score_file.txt > cleaned_score_file2.txt
+# Next, ensure the SNPs to be used are exactly the 1805 we need
+awk 'NR==FNR {rsids[$1]; next} $4 in rsids { print $1, $2, $3}' rsIDs.txt updated_1805_scores.txt > final_score.txt
 ```
 
 ```bash
-# run prs calculation in plink
-plink --bfile ../MPBC_HRC_Rsq03_updated --score cleaned_score_file.txt --out 1805/1800
-```
-
-Alternatively, the steps above can also be run from the terminal using the python script ```update_IDs.py```
-For this, a different version of the rsIDs file is needed. This will include the first 3 columns
-
-```bash
-cut -f 1-3 ../supplementary_data/1800snps_rs\ \(1\).tab > new_rsIDs.txt
-
-# run the python script
-python update_IDs.py
-
-# next, run plink as above
-```
-
-Finally, using all the 7 million snps in summary statistics for the prs calculation
-
-NB: plink terminates when runniung due to duplicate snp IDs in the ```all_snps.txt``` file. 
-The python script below removes the duplicates
-
-```python
-import pandas as pd
-
-# if pandas in not installed
-conda install pandas 
-pip install pandas
-
-# Load the score file
-score_df = pd.read_csv('filtered_snps.txt', sep='\t', header=None, names=[])
-
-# Drop duplicate rows based on the 'chr_pos_ref_alt' column
-score_df = score_df.drop_duplicates(subset=[0])
-
-# Save the cleaned score file
-score_df.to_csv('cleaned_score_file.txt', sep='\t', index=False, header=False)
-```
-
-```bash
-# run prs calculation in plink
-plink --bfile ../MPBC_HRC_Rsq03_updated --score cleaned_score_file.txt --out 1805/1800
+# PRS calculation can now be run again in PLINK
+mkdir && cd rerun_1805/
+module load GCC/11.3.0  OpenMPI/4.1.4 PLINK/2.00a3.7
+plink --bfile ../../../../MPBC_HRC_Rsq03_updated --score ../final_score.txt --out rerun_1805
 ```
 
 Output: 
 - Only 1788 of the 1805 snps matched in the summary statistics
-- Of these, only 751 snps were valid predictors
+- All 1805 snps were loaded as valid predictors in PLINK
 
 ### Visualization in R
-Again, the visualization is done in R (R/4.3.2), but this time, using the ```1800.profile``` file, and the ```covariates.txt``` file.
+Again, the visualization is done in R (R/4.3.2), but this time, using the ```rerun_1805.profile``` file, and the ```covariates.txt``` (same as with the 90 variants) file.
 
 ```bash
 # Modify the path to the variables (covariates.txt and 1800.profile) in the script as necessary
 R < PRS_analysis.R --no-save
-```
-Similarly, there isn't significant difference in the cases and controls based on the 751 snp predicting PD.  
+```  
 
 ## Using PRSice
 To run PRS calculation using PRSice, the following files are required:
