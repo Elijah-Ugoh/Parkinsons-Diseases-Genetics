@@ -1,3 +1,4 @@
+rm(list = ls())
 setwd("/Users/Elijah/Documents/Thesis_Project_2024")
 list.files()
 
@@ -259,7 +260,7 @@ confint(model_covs)
 #########################################################################
 # Visualizations
 #Smoking
-# Step 1: Create a new column combining snus usage and PD status
+# Step 1: Create a new column combining smoking and PD status
 smoking$Smoking_PD_Status <- with(smoking, paste(Smoking_Ever, ifelse(PD == 1, "PD", "Control"), sep = "_"))
 
 # Step 2: Plot the violin plot with the new variable
@@ -280,18 +281,18 @@ ggsave("Smoking_and_PD_Status.jpeg", dpi = 600, units = "in", height = 6, width 
 # visualize interaction between PRS and smoking in PD
 ggplot(smoking, aes(x = zSCORE, y = PD, color = Smoking_Ever)) +
   geom_smooth(method = "glm", method.args = list(family = "binomial"), se = TRUE) +
-  labs(title = "Interaction Between PRS and Smoking", x = "PRS Score", y = "Probability of PD") +
+  labs(title = "Interaction Between PRS and Smoking on PD Diagnosis", x = "Normalized PRS Score (zSCORE)", y = "Predicted Probability of PD") +
   theme_minimal()
 ggsave("Smoking_interaction.jpeg", dpi = 600, units = "in", height = 6, width = 6) # save plot
 
 # Alternatively, use the interaction.plot() function
-interaction.plot(x.factor = as.factor(smoking$PD), 
-                 trace.factor = as.factor(smoking$Smoking_Ever), 
-                 response = smoking$zSCORE, 
-                 fun = mean, xlab="PD Status", 
-                 ylab="PRS (zSCORE)", trace.label="Ever Smoked?", 
-                 col=c("green","red"), 
-                 lty=1, lwd=2 )
+# interaction.plot(x.factor = as.factor(smoking$PD), 
+#                  trace.factor = as.factor(smoking$Smoking_Ever), 
+#                  response = smoking$zSCORE, 
+#                  fun = mean, xlab="PD Status", 
+#                  ylab="PRS (zSCORE)", trace.label="Ever Smoked?", 
+#                  col=c("green","red"), 
+#                  lty=1, lwd=2 )
 
 #Snus
 # Step 1: Create a new column combining snus usage and PD status
@@ -315,18 +316,18 @@ ggsave("Snus_and_PD_Status.jpeg", dpi = 600, units = "in", height = 6, width = 6
 # visualize interaction between PRS and snus usage in PD
 ggplot(snus, aes(x = zSCORE, y = PD, color = Snus_Ever)) +
   geom_smooth(method = "glm", method.args = list(family = "binomial"), se = TRUE) +
-  labs(title = "Interaction Between PRS and Snus Usage", x = "PRS Score", y = "Probability of PD") +
+  labs(title = "Interaction Between PRS and Snus Usage  on PD Diagnosis", x = "Normalized PRS Score (zSCORE)", y = "Predicted Probability of PD") +
   theme_minimal()
 ggsave("Snus_interaction.jpeg", dpi = 600, units = "in", height = 6, width = 6) # save plot
 
 # Alternatively, use the interaction.plot() function
-interaction.plot(x.factor = as.factor(snus$PD), 
-                 trace.factor = as.factor(snus$Snus_Ever), 
-                 response = snus$zSCORE, 
-                 fun = mean, xlab="PD Status", 
-                 ylab="PRS (zSCORE)", trace.label="Ever Used Snus?", 
-                 col=c("green","red"), 
-                 lty=1, lwd=2 )
+# interaction.plot(x.factor = as.factor(snus$PD), 
+#                  trace.factor = as.factor(snus$Snus_Ever), 
+#                  response = snus$zSCORE, 
+#                  fun = mean, xlab="PD Status", 
+#                  ylab="PRS (zSCORE)", trace.label="Ever Used Snus?", 
+#                  col=c("green","red"), 
+#                  lty=1, lwd=2 )
 
 #Pesticides Exposure
 # Step 1: Create a new column combining snus usage and PD status
@@ -341,7 +342,7 @@ p2 <- p + geom_boxplot(width = 0.4, fill = "white", alpha = 0.7) +
   scale_fill_manual(values = c("blue", "red", "blue", "red")) + 
   theme_bw() + 
   ylab("PD PRS (zSCORE)") + 
-  xlab("Pesticides Exposure and PD Status") + 
+  xlab("Pesticides Exposure and PD Status  on PD Diagnosis") + 
   theme(legend.position = "none")
 # Display the plot
 p2
@@ -350,19 +351,19 @@ ggsave("Pesticides_Exposure_and_PD_Status.jpeg", dpi = 600, units = "in", height
 # visualize interaction between PRS and Pesticides Exposure in PD
 ggplot(pesticides, aes(x = zSCORE, y = PD, color = Pesticides_Ever)) +
   geom_smooth(method = "glm", method.args = list(family = "binomial"), se = TRUE) +
-  labs(title = "Interaction Between PRS and Pesticides Exposure", x = "PRS Score", y = "Probability of PD") +
+  labs(title = "Interaction Between PRS and Pesticides Exposure on PD Diagnosis", x = "Normalized PRS Score (zSCORE)", y = "Predicted Probability of PD") +
   theme_minimal()
 ggsave("Pesticides_interaction.jpeg", dpi = 600, units = "in", height = 6, width = 6) # save plot
 
 
 # Alternatively, use the interaction.plot() function
-interaction.plot(x.factor = as.factor(pesticides$PD), 
-                 trace.factor = as.factor(pesticides$Pesticides_Ever), 
-                 response = pesticides$zSCORE, 
-                 fun = mean, xlab="PD Status", 
-                 ylab="PRS (zSCORE)", trace.label="Ever Used Pesticides?", 
-                 col=c("green","red"), 
-                 lty=1, lwd=2 )
+# interaction.plot(x.factor = as.factor(pesticides$PD),
+#                  trace.factor = as.factor(pesticides$Pesticides_Ever),
+#                  response = pesticides$zSCORE,
+#                  fun = mean, xlab="PD Status",
+#                  ylab="PRS (zSCORE)", trace.label="Ever Used Pesticides?",
+#                  col=c("green","red"),
+#                  lty=1, lwd=2 )
 
 #Caffeine Consumption
 # Step 1: Create a new column combining Caffeine Consumption and PD status
@@ -386,19 +387,18 @@ ggsave("Caffeine_Consumption_and_PD_Status.jpeg", dpi = 600, units = "in", heigh
 # visualize interaction between PRS and Caffeine Consumption in PD
 ggplot(caffeine1, aes(x = zSCORE, y = PD, color = Caffeine_Ever)) +
   geom_smooth(method = "glm", method.args = list(family = "binomial"), se = TRUE) +
-  labs(title = "Interaction Between PRS and Caffeine Consumption", x = "PRS Score", y = "Probability of PD") +
+  labs(title = "Interaction Between PRS and Caffeine Consumption on PD Diagnosis", x = "Normalized PRS Score (zSCORE)", y = "Predicted Probability of PD") +
   theme_minimal()
 ggsave("Caffeine_Consumption_interaction.jpeg", dpi = 600, units = "in", height = 6, width = 6) # save plot
 
-
 # Alternatively, use the interaction.plot() function
-interaction.plot(x.factor = as.factor(caffeine1$PD), 
-                 trace.factor = as.factor(caffeine1$Caffeine_Ever), 
-                 response = caffeine1$zSCORE, 
-                 fun = mean, xlab="PD Status", 
-                 ylab="PRS (zSCORE)", trace.label="Ever Drank Coffee/Tea?", 
-                 col=c("green","red"), 
-                 lty=1, lwd=2 )
+# interaction.plot(x.factor = as.factor(caffeine1$PD), 
+#                  trace.factor = as.factor(caffeine1$Caffeine_Ever), 
+#                  response = caffeine1$zSCORE, 
+#                  fun = mean, xlab="PD Status", 
+#                  ylab="PRS (zSCORE)", trace.label="Ever Drank Coffee/Tea?", 
+#                  col=c("green","red"), 
+#                  lty=1, lwd=2 )
 
 #Caffeine Consumption Level
 # Step 1: Create a new column combining Caffeine Consumption Level and PD status
@@ -419,21 +419,21 @@ p2 <- p + geom_boxplot(width = 0.4, fill = "white", alpha = 0.7) +
 p2
 ggsave("Caffeine_Consumption_Level_and_PD_Status.jpeg", dpi = 600, units = "in", height = 6, width = 6) # save plot
 
-# visualize interaction between PRS and Caffeine Consumption in PD
+# visualize interaction between PRS and Caffeine Consumption  Levelin PD
 ggplot(caffeine2, aes(x = zSCORE, y = PD, color = Caffeine_Consumption_Level)) +
   geom_smooth(method = "glm", method.args = list(family = "binomial"), se = TRUE) +
-  labs(title = "Interaction Between PRS and Caffeine Consumption Level", x = "PRS Score", y = "Probability of PD") +
+  labs(title = "Interaction Between PRS and Caffeine Consumption Level on PD Diagnosis", x = "Normalized PRS Score (zSCORE)", y = "Predicted Probability of PD") +
   theme_minimal()
 ggsave("Caffeine_Consumption_Level_interaction.jpeg", dpi = 600, units = "in", height = 6, width = 6) # save plot
 
-# Alternatively, use the interaction.plot() function
-interaction.plot(x.factor = as.factor(caffeine2$PD), 
-                 trace.factor = as.factor(caffeine2$Caffeine_Consumption_Level), 
-                 response = caffeine2$zSCORE, 
-                 fun = mean, xlab="PD Status", 
-                 ylab="PRS (zSCORE)", trace.label="Do You Drink Lots of Coffee/Tea?", 
-                 col=c("green","red"), 
-                 lty=1, lwd=2 )
+# # Alternatively, use the interaction.plot() function
+# interaction.plot(x.factor = as.factor(caffeine2$PD), 
+#                  trace.factor = as.factor(caffeine2$Caffeine_Consumption_Level), 
+#                  response = caffeine2$zSCORE, 
+#                  fun = mean, xlab="PD Status", 
+#                  ylab="PRS (zSCORE)", trace.label="Do You Drink Lots of Coffee/Tea?", 
+#                  col=c("green","red"), 
+#                  lty=1, lwd=2 )
 
 
 # Make tables to know the number of individuals in each group
