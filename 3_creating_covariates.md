@@ -96,8 +96,7 @@ R < PCA.R --no-save
 - ```make_scree_plots.R``` plot the variance explained by the eigenvalues in of all the PCs, as well as the first 10.  
 - The R script, ```PCA.R``` can also be use to merge all the PCs and their individual IDs and saved as a text file in the current working dir as follows:
 - The outputed table, ```pca_prunned_updated.txt``` has 20 PCs by default.
-- Also, from the ```screePlot_MPBC_1-10.jpg``` and ```percentage_variance_explained.png``` plots, the first 10 PCs separate the data the most. 
-- ```Plot_of_PC1_vs_PC2.png``` also shows variation by sex and disease status in the first two PCs.
+- Also, from the ```screePlot_MPBC_1-10.jpg``` and ```percentage_variance_explained.png``` plots, the first 10 PCs separate the data the most.
 
 ### Update Covariate File with PCs
 Now, the covariate file can be updated with the right number of PCs needed. 
