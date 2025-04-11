@@ -11,13 +11,13 @@ The study aimed to evaluate gene-environment interaction in Parkinson's disease 
 ## Getting Started
 The complete analysis for this study can be followed in this order:
 
-1. Setup and Installations
-2. SNPs Extraction and Formatting
-3. Extraction of Covariate Data from Questionnaire
-4. Genotyping Data Quality Control
-5. PRS Computations
-6. Stratification Analyses
-7. Investigating T2D Impact on PD
+1. [Setup and Installations](https://github.com/Elijah-Ugoh/Parkinsons-Diseases-Genetics/blob/main/1_Setup_and_Installations.md)
+2. [SNPs Extraction and Formatting](https://github.com/Elijah-Ugoh/Parkinsons-Diseases-Genetics/blob/main/2_extract_90_risk_variants.md)
+3. [Extraction of Covariate Data from Questionnaire](https://github.com/Elijah-Ugoh/Parkinsons-Diseases-Genetics/blob/main/3_creating_covariates.md)
+4. [Genotyping Data Quality Control](https://github.com/Elijah-Ugoh/Parkinsons-Diseases-Genetics/blob/main/4_quality_control.md)
+5. [PRS Computations](https://github.com/Elijah-Ugoh/Parkinsons-Diseases-Genetics/blob/main/5_PRS_Computation.md)
+6. [Stratification Analyses](https://github.com/Elijah-Ugoh/Parkinsons-Diseases-Genetics/blob/main/6_stratification.md)
+7. [Investigating T2D Impact on PD](https://github.com/Elijah-Ugoh/Parkinsons-Diseases-Genetics/blob/main/README.md).
 
 NB: Some code for analysis were inspired by the pipeline in the [Global Parkinson's Disease Genetics programme](https://github.com/GP2-TNC-WG/GP2-Beginner-Bioinformatics-for-PD-Genetics/blob/master/README.md).
 
