@@ -1,22 +1,22 @@
-# Creating the Covariate File
+# Creating a Covariate File
 
-To run the polygenic risk score analysis, the following data is required:
-- The QC-ed and Imputed genetic data files for all the individuals (cases and comntrols) in plink binary format (.bed, .bim & .fam files).
+To run the polygenic risk score calculation and analysis, the following data files are needed:
+- The QC-ed and Imputed genotype data files for all the individuals (cases and controls) in plink binary format (.bed, .bim & .fam files).
 - A covariate file containing supplementary data about each individual, as well as their corresponding principal component analysis data.
 - Finally, the score file containing the beta scores of each PD SNP of interest.
 
 ## Preparing the Covariate File
-The information needed to prepare the covariate file is obtained from the questionaire issued to the 1864 individuals in the MPBC cohort. Using a header description file, the appropriate columns were extracted and used to prepare the covariates.
+The information needed to prepare the covariate file is obtained from the questionaire issued to the individuals included in the MPBC cohort. Using a header description file, the appropriate columns were extracted and used to prepare the covariates.
 
-NB: Not all the individuals in the cohort participated in the survey 
+NB: Not all the individuals in the cohort participated in the survey. 
 
-### Extract Relevant Data from Questionnaire
+### Extract Relevant Data from Questionnaire Data
 ```bash
-# make new dir within Documents dir to store project files
+# make new dir within Documents dir in the HPC to store project files
 mkdir Elijah && cd Elijah
 ```
 
-The ```QuestionnaireData_N1864_FINAL_CLEANED_210621.csv``is in spreadsheet format, so it's converted to csv.
+The ```QuestionnaireData_N1864_FINAL_CLEANED_210621.csv``` is in spreadsheet format, so it's converted to csv.
 
 ```bash
 brew install gnumeric # to install xlsx-to-csv converter on mac
@@ -33,18 +33,18 @@ cd processed_analysis_files && mkdir 02_covariate_file
 cut -d ',' -f 2,4,6,10,179,181 QuestionnaireData_N1864_FINAL_CLEANED_210621_nomed.csv | sed 's/,/\t/g' | sed 's/"//g' > 02_covariate_file/covs.txt
 
 # sed 's/,/\t/g' replaces commas with tabs
-# sed -i "s/[\"-]//g' removes all the double quotes from the IDs and headers and the hypens from the IDs
+# sed -i "s/[\"-]//g' removes all the double quotes from the IDs and headers and the hyphens from the IDs
 
 less -S 02_covariate_file/covs.txt # view new file
 ```
 
-- The headers in the covariate file and the fam file are different and need to be harmonized.
+- The headers in the covariate file and the fam file are different and must be harmonized.
 
 - This is done using an ID_match file that contains all IDs in the fam file matched to the corresponsing IDs in the questionnaire data/covariate file.
 
 - We create an ID match file (first column matches the ID format in the fam file and second column matches the ID format in covariates file)
 
-- The ID match file provided is saved with a 'carriage return', a typical Windows-style line ending and must be resolved before it is used on the Linux terminal to ensure accurate ID matching results
+- The ID match file provided is saved with a trailing white space, which must be removed before it is used on the Linux terminal to ensure accurate ID matching results.
 
 ```bash
 cd ..
@@ -71,7 +71,7 @@ A principal component analysis is computed for all indiduals in the study to det
 
 This is done on the filtered, pre-imputation data to get uninflated population stratification. 
 
-To keep the working directory clean, create a different directory for the PCA calculation
+To keep the working dir clean, create a different dir for the PCA calculation
 
 ```bash
 cd ../ && mkdir 03_PCA
@@ -85,7 +85,7 @@ plink --bfile FILTERED.test_for_PCA --indep-pairwise 50 5 0.5 --out prune
 plink --bfile FILTERED.test_for_PCA --extract prune.prune.in --make-bed --out prune
 plink --bfile prune --pca --out NEW_MPBC_PCA
 ```
-To determine the number of PCs to include in the covariates and GWAS analysis, we use the following R scripts to make a scree plot and a bar plot to see the variance explained by the eigenvalues of the PCs.
+To determine the number of PCs to include in the covariates and GWAS analysis, we use the R scripts below to make a scree plot and a bar plot to see the variance explained by the eigenvalues of the PCs.
 
 ```bash
 module load GCC/12.3.0 R/4.3.2
@@ -94,8 +94,8 @@ R < PCA.R --no-save
 ```
 
 - ```make_scree_plots.R``` plot the variance explained by the eigenvalues in of all the PCs, as well as the first 10.  
-- The R script, ```PCA.R``` can also be use to merge all the PCs and their individual IDs and saved as a text file in the current working directory as follows:
-- The outputted table, ```pca_prunned_updated.txt``` has 20 PCs by default.
+- The R script, ```PCA.R``` can also be use to merge all the PCs and their individual IDs and saved as a text file in the current working dir as follows:
+- The outputed table, ```pca_prunned_updated.txt``` has 20 PCs by default.
 - Also, from the ```screePlot_MPBC_1-10.jpg``` and ```percentage_variance_explained.png``` plots, the first 10 PCs separate the data the most. 
 - ```Plot_of_PC1_vs_PC2.png``` also shows variation by sex and disease status in the first two PCs.
 
@@ -125,10 +125,10 @@ awk 'NR==FNR {cols[NR]=$18 "\t" $19; print $1 "\t" $2 "\t" cols[FNR] "\t" $4 "\t
 less covariates.txt # view final coviarate file and compare the first two columns with the fam file
 ```
 
-Finally, to ensure the IDs in the fam file and covariate files match, we check for any differences using awk on the terminal
+Finally, to ensure the IDs in the .fam file and covariate files match, we check for any differences using awk on the terminal
 ```bash
 awk 'FNR==NR{a[$1];next} !($1 in a){print}' ../../MPBC_HRC_Rsq03_updated.fam covariates.txt
-# the only difference should be the headers, which is missing in the .fam file.
+# If everything worked fine, the only difference should be the headers, which is missing in the .fam file.
 ```
 ```bash
 FID     IID     MAT     PAT     SEX     PHENO       EDUCATION       AAD     AGE     PC1     PC2     PC3     PC4     PC5     PC6     PC7     PC8     PC9     PC10     

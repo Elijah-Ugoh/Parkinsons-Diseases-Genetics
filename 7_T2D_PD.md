@@ -1,16 +1,17 @@
 # Investigating the Impact of Type II Diabetes Mellitus (T2D) on Parkinson's Disease (PD) Risk in the MPBC Cohort
+
 Steps:
-- Data QC (extensive QC has been done on the MPBC cohort. So, no need for QC here, since the same dataset will be used in this pipeline).
+- Data QC (extensive QC has been done on the MPBC cohort. So, no need for QC here, since the same dataset will be used in this section).
 - Create a new covariate file with additional information on T2D for all participants.
-  - To create the covariate file, we must first extract diagnostic information from government data to ensure we include only T2D (and not T1D) in the analysis.
+  - To create the covariate file, we must first extract T2D diagnostic information from Swedish national patient registry (Socialstyrelsen) to ensure we include only T2D (and not T1D) in the analysis.
   - This is because clinical information in the questionnaire is self-reported and does not specify what type of diabetes.   
 - Get summary stats from publicly available GWAS data and update them to plink-ready format.
-- Match the SNPs in the summary stat with those in our QC'ed and imputed genotyping data to ensure alleles and ID consistency. 
-- Run the PRS calculations using plink2. 
+- Match the SNPs in the summary stats with those in our QC'ed and imputed genotype data to ensure alleles and ID consistency. 
+- Run the PRS calculations using PLINK v2.0. 
 - Analyze the results using logistic regressisons and visualizations in R. 
 
 ## Creating Updated Covariate File with T2D Information
-The steps below create an updated covariate file (using diabetes and parkinsons disease diagnoses from the Swedish national patient registry):
+The steps below create an updated covariate file (using T2D and PD diagnoses from Socialstyrelsen):
 
 ```bash
 # create a wd in the pwd
@@ -73,7 +74,7 @@ END {
     }
 }' updated_G20_E11.txt > individuals_with_PD_T2D.txt
 ```
-Use the ID match document to update the individual IDs (to match the genotyping data)
+Use the ID match document ```ID_match_unix.txt``` to update the individual IDs (to update IDs to match the cleaned genotype data).
 
 ```bash
 # Update IDs
@@ -82,7 +83,7 @@ awk 'NR==FNR {a[$2]=$1; next} {if ($1 in a) $1=a[$1]; print}' ../../../ID_match_
 # Update covariates: merge the data in both the old covariates file and PD_T2D_harmonized.txt into one 
 awk 'NR==FNR {t2d[$1] = $3; next} FNR==1 {print $0, "T2D"; next} {print $0, ($1 in t2d) ? t2d[$1] : "0"}' PD_T2D_harmonized.txt ../../02_covariate_file/covariates.txt > new_covariates.txt
 ```
-- At this point, it is necessary to compare with T2D data in the questionnaire to see if there are differences (the next script below extracts the T2D data directly from the questionnaire)
+- At this point, it is necessary to compare with T2D data in the questionnaire to see if there are differences (the next script below extracts the T2D data directly from the questionnaire).
 
 ```bash
 # extract the T2D data from the questionnaire
@@ -112,7 +113,7 @@ awk '$2==1 {print $1, $2}' General_diagnostic_info/PD_T2D_harmonized.txt | grep 
 # 3. Check how many T2D cases are there in patient registry and questionnaire dataset
 awk '$3==1 {print $1, $3}' General_diagnostic_info/PD_T2D_harmonized.txt | grep '^GB' | wc -l
 awk '$20==1 {print $1, $20}' covariates_with_T2D.txt | wc -l
-# 116 in the patient registry and 148 (32 more) in the questionnaire data
+# 116 in the patient registry and 148 in the questionnaire data
 
 # count the PD, T2D, PD + T2D, & healthy controls in the final data (new_covariates.txt)
 ```bash
@@ -126,20 +127,20 @@ $ awk '$6==0 {print $20}' General_diagnostic_info/new_covariates.txt | sort | un
 
 - This final output includes 948 individuals (832 PD, 55 T2D, and 61 both PD & T2D)
 - Questionnaire data has 935 cases altogether (867 PD, 54 T2D, and 62 both PD & T2D). 
-- The national diagnostic data is used as the updated version, specifically for studying the impact of T2D on PD in the MPBC cohort.
+- The Socialstyrelsen data is used as the updated version, specifically for studying the impact of T2D on PD in the MPBC cohort.
 
-## Formatting GWAS Score Files
+## Formatting GWAS Summary Statistics Files
 
-Four GWAS score files for T2D are obtained from established studies and uploaded to the cluster. These are:
+Four GWAS summary stats files for T2D are obtained from most recent genome-wide studies and uploaded to the cluster. These are:
 1. [Khera 2018](https://www.nature.com/articles/s41588-018-0183-z)
 2. [Mars 2020](https://www.nature.com/articles/s41591-020-0800-0)
 3. [Ge 2022](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-022-01074-2), and 
 4. [Lin 2023](https://www.sciencedirect.com/science/article/pii/S0048969723028747?via%3Dihub)
 
-Using 4 differnt summary stastistics allows us to compare and pick the best summary stastistics with strongest association for T2D.
+Using 4 differnt summary stats allows us to compare and pick the best summary stats with strongest discrimination between T2D cases and controls.
 
 ```bash
-# copy all four summary stats to the working dir
+# copy all four datasets to the working dir
 >sftp put -r Scores_PD-DM/ /home/elugoh/Documents/DataFolder/Elijah/processed_analysis_files/08_T2D_PD/
 # update the formatting of the each summary stat file to tab-deliminated
 sed 's/ /\t/g' Score_Ge.txt > tab_delim_Ge.txt
@@ -147,14 +148,16 @@ sed -i 's/ /\t/g' Score_Khera.txt
 sed -i 's/ /\t/g' Score_Lin.txt 
 sed -i 's/ /\t/g' Score_Mars.txt
 ```
-Next, to check for SNP ID and allele consistency, and update the SNP IDs, the ```flip_ref_alt.py``` python script is run using the SLURM job script, ```update_scores.sh```. 
+Next, to check for SNP ID and allele consistency, and update the SNP IDs, the ```flip_ref_alt.py``` python script is run using the SLURM job script, ```update_scores.sh```.
+
 ```bash
 sh update_scores.sh
 
-# The python script checks if the SNPs in the score files align with SNPs in our genotyping data in terms of SNP IDs, chromosomes, chromosome positions, and alleles.
+# The python script checks if the SNPs in the score files align with SNPs in our genotype data in terms of SNP IDs, chromosomes, chromosome positions, and alleles.
 # It also accounts for cases of swapped/flipped alleles and outputs matching SNPs to a new file with reformatted IDs (chr:pos:ref:alt) 
 ```
-```flip_ref_alt.py``` and ```update_scores.sh``` are updated accordingly with right imput files and the step above is repeated for all score files. 
+
+```flip_ref_alt.py``` and ```update_scores.sh``` are updated accordingly with right input files and the step above is repeated for all score files. 
 
 
 ## Now, the PRS Calculations
@@ -165,6 +168,7 @@ plink --bfile ../../../MPBC_HRC_Rsq03_updated --score ../Scores_PD-DM/updated_Ge
 plink --bfile ../../../MPBC_HRC_Rsq03_updated --score ../Scores_PD-DM/updated_Mars_scores2.txt --out Mars_PRS
 plink --bfile ../../../MPBC_HRC_Rsq03_updated --score ../Scores_PD-DM/updated_Lin_scores2.txt --out Lin_PRS
 ```
-- Copy the PRS calculations and the new covariate file locally and read them in R for further analysis and visualization
+- Copy the PRS estimates and the new covariate file from the cluster to local dir and read them in R for further analysis and visualization.
+
 - See the ```T2D_PD_PRS_Analysis.R``` script for the complete analysis in R. 
 

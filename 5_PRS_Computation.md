@@ -1,17 +1,19 @@
 # Polygenic Risk Score Calculation
-## Using 90 Significant Risk Variants
-With the covariate and beta score files created, the Polygenic Risk Scores for all individuals in the study can be calculated using plnk. 
+## PRS Calculation Using 90 Significant Risk Loci (SNPs)
 
-- The ```--score``` function, which is commonly used to compute a weighted sum of allele dosages, based on the scores in the ```metaanalyis90.txt``` file is included.
-- ```metaanalyis90.txt``` contains the PD-associated risk variants and their effect sizes.
-- The binary PLINK files (.bed, .bim, and .fam) containing genotype data of 1864 individuas.
-- The covariate file contains the individaul IDs, age, age at diagnosis (AAD), disease status, education, and sex information.
+With the score files created, the Polygenic Risk Scores (PRS) for all individuals in the study can be calculated in plnk. The following are needed:
+
+- The ```--score``` flag, commonly used to compute a weighted sum of allele dosages, based on the scores in the ```metaanalyis90.txt``` file is included.
+- ```metaanalyis90.txt``` contains the PD-associated risk variants and their effect weights (beta score).
+- The binary PLINK files (.bed, .bim, and .fam) containing QC'ed and imputed genotype data of 1864 individuas.
+- PLINK v1.9. 
 
 ```bash
-# first covert the SNP IDs in the beta score file to the corresponding SNP IDs in the .bim file
+# If the SNP IDs in the score file is not in the same format as the SNP IDs in the .bim file (chr:pos:ref:alt), the script below can be used to re-format it. This script only works if SNP IDs in the score file are formatted as "chr:pos" 
+
 python update_score_ID.py MPBC_HRC_Rsq03_updated.bim metaanalysis90.txt meta_GRS_updated.txt
 
-# run PRS computation
+# run PRS calculation
 mkdir processed_analysis_files/04_PRS
 plink --bfile MPBC_HRC_Rsq03_updated --score meta_GRS_updated.txt --out processed_analysis_files/04_PRS/PRS_PD_MPBC
 ```
@@ -21,7 +23,7 @@ Output:
 - PRS_PD_MPBC.log: Log file
 - For this analysis, all the variants from the score file matched those in the genotype data.
 
-The SCORE column in the .profile file shows the computed risk score for each individual sample based on the SNPs present in the individual.
+The SCORE column in the .profile file shows the computed risk score for each individual sample based on the matching SNPs present in the individual.
 
 ### Visualization in R
 The PRS visualization is completed in R (R/4.3.2) using the ```PRS_PD_MPBC.profile``` and ```covariates.txt``` files and the ```PRS_analysis.R``` script.
@@ -35,11 +37,9 @@ moddule load R/4.3.2
 R < PRS_analysis.R --no-save
 ```
 
-Separation noticed in the PRS for both the cases and controls was not strong.
+The same analysis is conducted using the 1805 SNPs associated with Parkinson's disease in the Nalls study. 
 
-The same analysis is also conducted for using the 1805 SNPs associated with Parkinson's disease in the Nall et al., 2019 study. 
-
-## PRS Calcultion Uisng 1805 Risk Variants
+## PRS Calcultion Uisng 1805 Risk SNPs
 Conidering that the SNPs file only has ```rsIDs```, this must be converted to the ```chrom:pos:ref:alt``` to align with the format in the .bim file before the analysis is done. 
 
 ```bash
@@ -48,21 +48,16 @@ mkdir processed_analysis_files/04_PRS/dbSNP/
 cd processed_analysis_files/04_PRS/dbSNP/
 cut -f 1 ../supplementary_data/1800snps_rs\ \(1\).tab > rsIDs.txt
 ```
-- Here, rsIDs.txt is a file with only the rsIDs from the score file, ensuring we only pull matching entries from the dbSNP database.
-
-NB: 
-- Pulling directly from the dbSNP database did not yield the desired result, as it returned multiple alternate allele for each SNP. 
-- The SNP ID conversion was done by comparing the rsIDs in the 1805 SNPs with the data in the complete Nalls Summary Statistics.
 
 Next Steps:
 
-- Download complete Nalls Summary Statistics with all SNPs data
+- Download complete Nalls summary statistics for all associated SNPs (1805). 
 
 ```bash
 # update summary statistics file name for easy handling
 mv summary_statistics_Nalls_et_al_2019_EUR_metaGWAS_no23andme_hg38.txt updated_score_file.txt
 ```
-Next, the file is re-formatted according to the structure in our .bim file
+Next, the file is re-formatted according to the structure in the .bim file
 ```bash 
 # create a new file
 echo -e "rsID\tchr_name\tchr_position\teffect_allele\tother_allele\teffect_weight" > new_score_file.txt
@@ -107,10 +102,10 @@ Again, the visualization is done in R (R/4.3.2), but this time, using the ```rer
 R < PRS_analysis.R --no-save
 ```  
 
-## Using PRSice
+## PRS Calculation Using PRSice
 To run PRS calculation using PRSice, the following files are required:
 - Published GWAS or summary statistic or base data
-- QC'ed, Imputed target data (plink files for the MPBC cohort)
+- QC'ed, imputed target data (plink files for the MPBC cohort)
 - LD reference dataset (necessary if sample data is less than 500 individuals)
 - Covarariates file (optional)
 
@@ -256,7 +251,5 @@ Rscript PRSice.R --dir $NAISS_TMP \
  --thread 25
 ```
 
-To ensure, we have the best-fit regression without overfitting, we use empirical p-value by adding the ```--perm``` flag with 12000 permutation. Additionally, we can adjust for covariates in the regression using our covariates file by adding the ```--cov```and ```--cov-col``` options. See ```PRSice.sh``` script for full command.
+Optionally, empirical p-value can be added using the ```--perm``` flag with 12000 permutation to avoid overfitting. Additionally, we can adjust for covariates in the regression using our covariates file by adding the ```--cov```and ```--cov-col``` options. See ```PRSice.sh``` script for full command.
 
-
-Using the ```--perm``` option or adjusting for covariates didn't yield a better result. Moreover, this will be done in R when analysing the model fitness using logistic regression.

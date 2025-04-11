@@ -1,7 +1,7 @@
 # Quality Control and Imputation
-Quality control is the first step in the data analysis pipeline, before the PRS is calculated.
+To avoid spurious associations and bias. QC is performed at both sample and variant level on the genotyping data.
 
-This involves cleaning the genotype data by filtering for linkage disequilibrium, genotype call rates, missing snps, minor allele frequency, relatedness, missing haplotyes, and is the data meets the condition for Hardy-Weinberg Equilibrium.  
+The file needed are the raw Plink binary files (.fam, .bim, and .bed files) for pd patienst and controls. PLINK and GCTA are needed here.
 
 ```bash
 mkdir processed_analysis_file/01_QC
@@ -10,15 +10,15 @@ mkdir processed_analysis_file/01_QC
 module spider plink
 module spider PLINK/2.00a3.7
 module load GCC/11.3.0  OpenMPI/4.1.4 # load dependencies
-module load PLINK/2.00a3.7 # then loda plink
+module load PLINK/2.00a3.7 # then load plink
 ```
-
-## 1. Filter Based on Genotyping Call Rate per Sample
+## Genotyping Daat QC
+### 1. Filter Based on Genotyping Call Rate per Sample
 ```bash
 plink --bfile MPBC --missing --out processed_analysis_files/01_QC/call_rates
 ```
 
-### Remove Call Rate Outliers
+#### Remove Call Rate Outliers
 - Based on the results from the ```processed_analysis_files/1_QC/call_rates.imiss``` file, samples that are not genotyped at the 95% of the tested variance are removed using the ```--mind 0.05``` flag.
 - No individual was removed as all passed the filtering with good genotyping call rate of 0.97.
 
@@ -28,7 +28,7 @@ plink --bfile MPBC --mind 0.05 --make-bed --out processed_analysis_files/01_QC/M
 
 NB: No individual was removed due to missing genotype data 
 
-## 2. Next, Prune the Data for Heterozygosity and Linkage Disequilibrium
+### 2. Next, Prune the Data for Heterozygosity and Linkage Disequilibrium
 ```bash
 mkdir processed_analysis_file/01_QC/prunning
 plink --bfile MPBC --geno 0.01 --maf 0.05 --indep-pairwise 50 5 0.5 --out processed_analysis_files/01_QC/prunning/prunning
@@ -47,21 +47,21 @@ plink --bfile ../../01_QC/MPBC_call_rates --remove all_outliers.txt --make-bed -
 
 NB: Only 1 individual was removed after filtering for heterozygosity. 
 
-## 3. Proceed to Sample-level and Gender QC 
+### 3. Proceed to Sample-level and Sex QC 
 ```bash
 plink --bfile after_het_call_rate --check-sex 0.25 0.75 --maf 0.05 --out gender_check1
 ```
 
-NB: No gender check problem found. So, the gender obtained from the clinical data correctly aligns with the genotyping data and no idividuals was filtered out at this stage. 
+NB: No sex check problem found. So, no idividuals was filtered out at this stage. 
 
-- Make binary files to proceed
 ```bash
+# Make binary files to proceed
 plink --bfile after_het_call_rate --make-bed --out after_gender
 ```
 
-## 4. Do Ancestry QC
-- The samples in the plink binary files is clustered with a reference panel, i.e., [HAPMAP reference populations](http://www.hapmap.org/). This way, all samples in the study that are not from the ancestry of interest (Europe) are filtered out. 
-- This comparison with HAPMAP is based on the number of SNPs in the input dataset that overlap with HAPMAP. 
+### 4. Do Ancestry QC
+- The samples in the plink binary files are merged with a reference panel, i.e., [HAPMAP reference populations](http://www.hapmap.org/). This way, all samples in the study that are not from the ancestry of interest (Europe) can be filtered out. 
+- This comparison with HAPMAP is based on the number of SNPs in the input dataset that overlap with the HAPMAP data. 
 
 ```bash
 # move up one directory and make a new directory
@@ -97,7 +97,7 @@ plink --bfile ancestry/pruned_data --geno 0.01 --out ancestry/pca --make-bed --p
 
 NB: Duplicate SNPs with multiple positions in the hapmap data and target data were removed. No indiviadual was removed. 
 
-### Calculate PCA
+#### Calculate PCA
 ```bash
 cd ancestry 
 mkdir pca_filtering
@@ -109,7 +109,7 @@ cut -d " " -f 3 ../prunning/after_gender.fam > pca_filtering/new_samples_add.txt
 ```
 
 - Add unique identifiers to the ID's in each sample group, then merge them again to perform the PC
-- "0" for the MPBC population, "1" for the european population, "2" and "3", for the asian and african population, respectively
+- "0" for the MPBC and European population, "1" for the european population, "2" and "3", for the Asian and African population, respectively
 - This is necessary for separating the different data groups for PCA calculation.
 
 ```bash
@@ -127,8 +127,6 @@ module load GCC/12.3.0
 module load R/4.3.2
 R < ../../../../HAPMAP_files/PCA_in_R.R --no-save
 ```
-
-NB: As expected, the MPBC cohort clustered around the population with European ancestry.
  
 Finally, on acestry filtering, we keep the samples that cluster with Europeans in the HAPMAP data and make genotype binary files from those.
 
@@ -139,9 +137,9 @@ plink --bfile ../../prunning/after_gender --keep PCA_filtered_europeans.txt --ma
 cat PCA_filtered_asians.txt PCA_filtered_africans.txt PCA_filtered_mixed.txt > hapmap_outliers.txt 
 ```
 
-NB: Besides the duplicate SNPS filtered out above, after the PCA calculation, 11 individuals that didn't cluster well with the European ancestry were removed. 1890 individual are left. 
+After the PCA calculation, 11 individuals that didn't cluster well with the European ancestry were removed. 1890 individual are left. 
 
-## 5. Filter based on Relatedness
+### 5. Filter based on Relatedness
 ```bash
 cd ../../ && mkdir relatedness
 plink --bfile ancestry/pca_filtering/after_gender_heterozyg_hapmap --geno 0.01 --maf 0.05 --indep-pairwise 50 5 0.5 --out relatedness/pruning
@@ -189,10 +187,10 @@ NB: Here, 26 related individuals have been removed, as saved in the ```IBD_remov
 cut -f 1,2 ../../ancestry/pca_filtering/after_gender_heterozyg_hapmap.fam > IDs_before_relatedness_filter.txt
 cut -f 1,2 after_gender_heterozyg_hapmap_pihat.fam > IDs_after_relatedness_filter.txt¢
 ```
-- At the end of this filteration, plink removed 26 individual for relatedness, retaining only 1864 unrelated individuals. 
+- At the end of this filteration, plink removed 26 individual for relatedness, retaining only 1864 unrelated individuals. This is done for comparison only. The GCTA output is used subsequently.
 
-## 6. Filter Based on Missingness per Variant
-- This pipeline segment filters genetic variants based on missingness per variant, which helps to ensure data quality by removing SNPs with high levels of missing data. 
+### 6. Filter Based on Missingness per Variant
+- This segment filters genetic variants based on missingness per variant, which helps to ensure data quality by removing SNPs with high levels of missing data. 
 
 NB: Continue the remaining QC steps with outputs from GCTA. For reference, I have also provided the last two steps using the relatedness filtering output from plink above. 
 
@@ -229,10 +227,10 @@ plink --bfile after_gender_heterozyg_pihat_mind --exclude missing_snps_1E4.txt -
 # create a unique, sorted list of excluded variants
 sort -u missing_snps_1E4.txt > VARIANT_TEST_MISSING_SNPS.txt
 ```
-NB: 29 SNPs were filtered out in both cases, but some of the filtered SNPs differ dependiong on which output files (GCTA or plink) from above were used. 
+NB: 29 SNPs were filtered out in both cases, but some of the excluded SNPs differ depending on which output files (GCTA or plink) from above were used. 
 
-## 6. Filter Based on Missingness by Haplotype
-- This section of your pipeline focuses on variant quality control (QC) based on haplotype missingness. It identifies variants that exhibit significant levels of missingness within certain haplotypes, which may indicate genotyping errors or data quality issues.
+### 6. Filter Based on Missingness by Haplotype
+- This section focuses on variant quality control (QC) based on haplotype missingness. It identifies variants that exhibit significant levels of missingness within certain haplotypes, which may indicate genotyping errors or data quality issues.
 
 - Here, the ```after_gender_heterozyg_pihat_mind_missing1```file genertaed above is used.
 
@@ -278,7 +276,7 @@ plink --bfile ../../missingness_per_variant/after_gender_heterozyg_pihat_mind_mi
 ```
 NB: In this case, 15,602 SNPs were removed instead.
 
-## 8. Hardy-Weinberg Equilibrium (HWE)
+### 8. Hardy-Weinberg Equilibrium (HWE)
 In this final QC step, we perform Hardy-Weinberg Equilibrium (HWE) filtering on the remaining SNPs by filtering out variants that deviate significantly from expected allele frequencies, particularly in controls.
 
 ```bash
@@ -296,9 +294,9 @@ mv after_gender_heterozyg_pihat_mind_missing3.fam FILTERED.test.fam
 mv after_gender_heterozyg_pihat_mind_missing3.log FILTERED.test.log
 mv after_gender_heterozyg_pihat_mind_missing3.hh FILTERED.test.hh
 ```
-NB: 682,254 SNPs from the control dataset were removed here. 
+NB: 916 SNPs from the control dataset were removed here. 
 
-# Imputation
+## Imputation
 The pipeline below walks through the data-quality checks and formattinmg done pre- and post-imputation of the QC'ed genotype data from above. 
 
 The data is formatted for imputation on the Michigan impuation server
@@ -315,7 +313,7 @@ We start by making a new directory and copying the QC'ed data into it.
 mkdir 1.1_post_QC_formatting && cd 1.2_Post_imputation_QC
 ```
 
-## Post-QC Formatting
+### Post-QC Formatting
 
 ```bash
 cd 1.1_post_QC_formatting
@@ -326,8 +324,9 @@ FILENAME=FILTERED.test
 plink --bfile $FILENAME --freq --out $FILENAME
 
 perl HRC-1000G-check-bim.pl -b $FILENAME.bim -f $FILENAME.frq -r HRC.r1-1.GRCh37.wgs.mac5.sites.tab -h
+
 # NB: This is computationally demanding and can take hours when run on the terminal. 
-#Use the SLURM job script below, and it will complete in few minutes.
+# Use the SLURM job script below, and it will complete in few minutes.
 ```
 
 ```bash
