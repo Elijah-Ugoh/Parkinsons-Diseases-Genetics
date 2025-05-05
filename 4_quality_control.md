@@ -125,10 +125,10 @@ cat new_samples2.txt euro.txt asiao.txt afrio.txt > pca.eigenvec2
 # plot the ancestry clusters
 module load GCC/12.3.0
 module load R/4.3.2
-R < ../../../../HAPMAP_files/PCA_in_R.R --no-save
+R < ../../../../HAPMAP_files/PCA_for_ancestry.R --no-save
 ```
  
-Finally, on acestry filtering, we keep the samples that cluster with Europeans in the HAPMAP data and make genotype binary files from those.
+Finally, on ancestry filtering, we keep the samples that cluster with Europeans in the HAPMAP data and make genotype binary files from those.
 
 ```bash
 plink --bfile ../../prunning/after_gender --keep PCA_filtered_europeans.txt --make-bed --out after_gender_heterozyg_hapmap
@@ -330,7 +330,7 @@ perl HRC-1000G-check-bim.pl -b $FILENAME.bim -f $FILENAME.frq -r HRC.r1-1.GRCh37
 ```
 
 ```bash
-sbatch perl.sh
+sbatch post_QC_formatting.sh
 ```
 
 This outputs the following files, which includes the updates that must be applied to the genotype data:

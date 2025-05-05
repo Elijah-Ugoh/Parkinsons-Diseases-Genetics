@@ -282,8 +282,14 @@ ggsave("Smoking_and_PD_Status.jpeg", dpi = 600, units = "in", height = 6, width 
 ggplot(smoking, aes(x = zSCORE, y = PD, color = Smoking_Ever)) +
   geom_smooth(method = "glm", method.args = list(family = "binomial"), se = TRUE) +
   labs(title = "Interaction Between PRS and Smoking on PD Diagnosis", x = "Normalized PRS Score (zSCORE)", y = "Predicted Probability of PD") +
-  theme_minimal()
-ggsave("Smoking_interaction.jpeg", dpi = 600, units = "in", height = 6, width = 6) # save plot
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 20),  # Adjust title size
+    axis.title = element_text(size = 16),  # Adjust x and y axis title size
+    axis.text = element_text(size = 14),   # Adjust axis labels size
+    legend.text = element_text(size = 14)  # Adjust legend text size
+  )
+ggsave("Smoking_interaction.jpeg", dpi = 600, units = "in", height = 6, width = 9) # save plot
 
 # Alternatively, use the interaction.plot() function
 # interaction.plot(x.factor = as.factor(smoking$PD), 
@@ -317,8 +323,14 @@ ggsave("Snus_and_PD_Status.jpeg", dpi = 600, units = "in", height = 6, width = 6
 ggplot(snus, aes(x = zSCORE, y = PD, color = Snus_Ever)) +
   geom_smooth(method = "glm", method.args = list(family = "binomial"), se = TRUE) +
   labs(title = "Interaction Between PRS and Snus Usage  on PD Diagnosis", x = "Normalized PRS Score (zSCORE)", y = "Predicted Probability of PD") +
-  theme_minimal()
-ggsave("Snus_interaction.jpeg", dpi = 600, units = "in", height = 6, width = 6) # save plot
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 20),  # Adjust title size
+    axis.title = element_text(size = 16),  # Adjust x and y axis title size
+    axis.text = element_text(size = 14),   # Adjust axis labels size
+    legend.text = element_text(size = 14)  # Adjust legend text size
+  )
+ggsave("Snus_interaction.jpeg", dpi = 600, units = "in", height = 6, width = 9) # save plot
 
 # Alternatively, use the interaction.plot() function
 # interaction.plot(x.factor = as.factor(snus$PD), 
@@ -352,8 +364,14 @@ ggsave("Pesticides_Exposure_and_PD_Status.jpeg", dpi = 600, units = "in", height
 ggplot(pesticides, aes(x = zSCORE, y = PD, color = Pesticides_Ever)) +
   geom_smooth(method = "glm", method.args = list(family = "binomial"), se = TRUE) +
   labs(title = "Interaction Between PRS and Pesticides Exposure on PD Diagnosis", x = "Normalized PRS Score (zSCORE)", y = "Predicted Probability of PD") +
-  theme_minimal()
-ggsave("Pesticides_interaction.jpeg", dpi = 600, units = "in", height = 6, width = 6) # save plot
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 20),  # Adjust title size
+    axis.title = element_text(size = 16),  # Adjust x and y axis title size
+    axis.text = element_text(size = 14),   # Adjust axis labels size
+    legend.text = element_text(size = 14)  # Adjust legend text size
+  )
+ggsave("Pesticides_interaction.jpeg", dpi = 600, units = "in", height = 6, width = 10) # save plot
 
 
 # Alternatively, use the interaction.plot() function
@@ -388,8 +406,14 @@ ggsave("Caffeine_Consumption_and_PD_Status.jpeg", dpi = 600, units = "in", heigh
 ggplot(caffeine1, aes(x = zSCORE, y = PD, color = Caffeine_Ever)) +
   geom_smooth(method = "glm", method.args = list(family = "binomial"), se = TRUE) +
   labs(title = "Interaction Between PRS and Caffeine Consumption on PD Diagnosis", x = "Normalized PRS Score (zSCORE)", y = "Predicted Probability of PD") +
-  theme_minimal()
-ggsave("Caffeine_Consumption_interaction.jpeg", dpi = 600, units = "in", height = 6, width = 6) # save plot
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 20),  # Adjust title size
+    axis.title = element_text(size = 16),  # Adjust x and y axis title size
+    axis.text = element_text(size = 14),   # Adjust axis labels size
+    legend.text = element_text(size = 14)  # Adjust legend text size
+  )
+ggsave("Caffeine_Consumption_interaction.jpeg", dpi = 600, units = "in", height = 6, width = 9) # save plot
 
 # Alternatively, use the interaction.plot() function
 # interaction.plot(x.factor = as.factor(caffeine1$PD), 
@@ -423,8 +447,14 @@ ggsave("Caffeine_Consumption_Level_and_PD_Status.jpeg", dpi = 600, units = "in",
 ggplot(caffeine2, aes(x = zSCORE, y = PD, color = Caffeine_Consumption_Level)) +
   geom_smooth(method = "glm", method.args = list(family = "binomial"), se = TRUE) +
   labs(title = "Interaction Between PRS and Caffeine Consumption Level on PD Diagnosis", x = "Normalized PRS Score (zSCORE)", y = "Predicted Probability of PD") +
-  theme_minimal()
-ggsave("Caffeine_Consumption_Level_interaction.jpeg", dpi = 600, units = "in", height = 6, width = 6) # save plot
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 20),  # Adjust title size
+    axis.title = element_text(size = 16),  # Adjust x and y axis title size
+    axis.text = element_text(size = 14),   # Adjust axis labels size
+    legend.text = element_text(size = 14)  # Adjust legend text size
+  )
+ggsave("Caffeine_Consumption_Level_interaction.jpeg", dpi = 600, units = "in", height = 6, width = 10) # save plot
 
 # # Alternatively, use the interaction.plot() function
 # interaction.plot(x.factor = as.factor(caffeine2$PD), 
