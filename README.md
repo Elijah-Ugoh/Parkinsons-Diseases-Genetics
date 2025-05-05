@@ -1,3 +1,4 @@
+[![DOI](https://zenodo.org/badge/879879651.svg)](https://doi.org/10.5281/zenodo.15341882)
 # Investigating the Associations Between Polygenic Risk Scores, Environmental Exposure, and Type II Diabetes in Parkinson’s Disease
 
 ## Overview
